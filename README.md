@@ -1,5 +1,6 @@
 internetcolortime
 =================
+Aug 2014
 
 Visually represent the 'color' of the internet, and the passage of time.
 
@@ -26,7 +27,6 @@ This is my first project using these technologies.
 This project is in beta. 
 Feel free to use this code!
 
-Adam Cahan
-August 2014
+
 
 
