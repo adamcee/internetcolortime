@@ -1,6 +1,6 @@
 {
-  "name": "coloroftheday",
-  "version": "~0.10.x",
+  "name": "internetcolortime",
+  "version": "0.5.1",
   "private": true,
   "scripts": {
     "start": "node ./bin/www"

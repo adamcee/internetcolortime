@@ -13,3 +13,4 @@ var make_table = function(){
                             tweet_time timestamp,
                             PRIMARY KEY ((color_name,date),tweet_time)
                           )";
+}

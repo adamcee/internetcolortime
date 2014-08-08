@@ -31,5 +31,8 @@ node_modules
 # Users Environment Variables
 .lock-wscript
 
-#Twitter Public API keys  and secrets
+# Twitter Public API keys  and secrets
 credentials.js
+
+# Somewhere to keep temp stuff, whatever
+scratch
