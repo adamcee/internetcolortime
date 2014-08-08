@@ -1,1 +1,21 @@
-module.exports = ['black','white','red','orange','yellow','green','purple','blue','brown','gray','grey'];
+module.exports = ['black',
+                  'white',
+                  'red',
+                  'green',
+                  'blue',
+                  'orange',
+                  'yellow',
+                  'pink',
+                  'lime',
+                  'beige',
+                  'brown',
+                  'purple',
+                  'cyan',
+                  'lavender',
+                  'grey',
+                  'gray',
+                  'turquoise',
+                  'silver',
+                  'gold',
+                  'maroon'
+                  ];

@@ -77,6 +77,23 @@ function newSwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
         this.swatchFull = true;
         return false;
       }
+    },
+
+    //Like drawNextSwatch but 'loops' - draws over from initial pos once swatchspace is full
+    //Return statement is an anachronism BUT allows this to be interchanged w/drawNextSwatch easily
+    drawSwatchesForever:  function(color, renderFunc){
+     
+      if(this.pointer_cp < this.centerPoints.length){
+        this.drawSwatch(this.centerPoints[this.pointer_cp],this.swatchSize,color,renderFunc);
+        this.pointer_cp +=1;
+        console.log('drawing gridPos ',this.pointer_cp);
+        return true;
+      }
+      //reset and draw from the top
+      else{
+        this.pointer_cp = 0;
+        return true;
+      }
     }
 
   }//close ss obj 
@@ -106,6 +123,7 @@ function SwatchSpace(width, height, colorsArr){
  */
 function createSwatch(centerPoint, theSize, color){
 
+    console.log('running createswatch2');
     var borderColor = 'white';//color of the swatch border
 
     //Create outer shape
@@ -183,6 +201,7 @@ var canHeight = 500;
 view.viewSize.width = canWidth;
 view.viewSize.height = canHeight;
 
+/***
 var swatchSpace = new SwatchSpace(canWidth-50, canHeight-100, ['red','yellow','green','blue']);
 var numSwatches = swatchSpace.swatchColors.length, i = 0;
 
@@ -190,10 +209,10 @@ sPoint = new Point(view.center.x/2,view.center.y);
 
 var theSwatch = createSwatch(sPoint,[swatchSpace.width/2, swatchSpace.height],'blue'); 
 var otherSwatch = createSwatch(new Point(view.center.x*1.5, view.center.y), [swatchSpace.width/2,swatchSpace.height],'green');
-
+***/
 
 //Testing out the newer swatchspace class
-var coolnewswatchspace = newSwatchSpace(canWidth, canHeight, 5,2);
+var coolnewswatchspace = newSwatchSpace(canWidth, canHeight, 5,3);
 console.log('made coolswatch');
 //setting a var func for drawing...
 var funcpass = createSwatch2;
@@ -212,5 +231,35 @@ while(!cools.swatchFull){
 console.log('cools w and h '+cools.swatchSize.width+' '+cools.swatchSize.height);
 console.log('widht and height are:  '+cools.width+' '+cools.height);
 
+/********************************
+ * WEBSOCKET STUFF AND ANIMATION STUFF
+ * ******************************/
 
 
+var socket = io.connect('http://localhost:9099');
+
+socket.on('test', function(data){
+  console.log("We got a websocket message: ", data);
+});
+
+socket.on('colorstamp', function(colorstamp){
+  
+  console.log('Received colorstamp! start: '+colorstamp.start+ ' end: '+colorstamp.end);
+  
+  colorstamp.modeColors.forEach(function(color){console.log("Top color is: ",color)});
+  console.log('Count of top color is: ',colorstamp.modeCount);
+
+  var allColors = colorstamp.allColors;
+  var colorKeys = Object.keys(allColors);
+
+  console.log('Additional colors.....');
+  for(var i = 0; i< colorKeys.length; i++){
+    var color = colorKeys[i];
+    console.log(color +' -- ' +allColors[color]);
+  }
+
+  //Draw a swatch!!!!
+  var swatchColor = colorstamp.modeColors[0];//for now ignore ties..
+  cools.drawSwatchesForever(swatchColor, funcpass);
+  
+});//close socket.on('colorstamp'

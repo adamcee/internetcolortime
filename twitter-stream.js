@@ -2,12 +2,11 @@
  * Testing out pulling data from Twitter Public Stream
  */
 debugger;
-console.log('in app');
-
+console.log('in twitter-stream.js');
 
 /*Vars and objs*/
 var twitter = require('ntwitter');
-var analyzeTweet = require('./handle-tweet.js');
+var handleTweet = require('./handle-tweet.js');
 
 var colors = require('./color-list.js');//all colors we want
 var credentials = require('./credentials.js');//twitter stream auth
@@ -28,20 +27,21 @@ var twit = new twitter({
 /*Where we actually pull and handle the Twitter stream*/
 //Have to replace the array here with var from module somewhere w/list of all colors??
 //Check out colorhexa.com....
-twit.stream('statuses/filter', {track: colors}, 
 
-    //Callback to handle twitter stream we've created
-    function(stream){
-      //When data event emitted from stream
-      debugger;
-      stream.on(
-        'data', 
-        function(tweet){
-          //Callback - process text & save to db...
-          analyzeTweet(tweet,colors);
-        });
-    }
-);
+twit.stream('statuses/filter', {track: colors}, function(stream){
+  //When data event emitted from stream
+  debugger;
+  stream.on('data', function(tweet){
+      //Callback - process text & save to db...
+
+      //handleTweet needs to return colors data...
+      handleTweet(tweet,colors);
+
+      //Stream colors data to client
+
+      //Save colors data to db
+  });
+});
 
 /*Test Functions*/    
 var testConn =  function(){
