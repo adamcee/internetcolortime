@@ -261,5 +261,6 @@ socket.on('colorstamp', function(colorstamp){
   //Draw a swatch!!!!
   var swatchColor = colorstamp.modeColors[0];//for now ignore ties..
   cools.drawSwatchesForever(swatchColor, funcpass);
+  view.update();
   
 });//close socket.on('colorstamp'
