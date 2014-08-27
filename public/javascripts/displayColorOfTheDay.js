@@ -37,8 +37,8 @@ var cools = coolnewswatchspace;
 //
 //WEBSOCKET STUFF AND ANIMATION/DRAWING SWATCHES 
 
-//NOTE: CHANGE TO YOUR SETTINGS
-var socket = io.connect('http://localhost:9099');
+//NOTE: CHANGE TO YOUR SETTINGS. Currently set for Heroku deployment
+var socket = io.connect(window.location.hostname);
 
 //confirm connection
 socket.on('test', function(data){

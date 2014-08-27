@@ -1,4 +1,8 @@
-var socket = io.connect('http://localhost:9099');
+/* NOTE: As of 8/26/14 all functionality here in displayColorOfTheDay.js
+ * This file not in use. 
+ *
+ */
+var socket = io.connect(window.location.hostname);
 
 socket.on('test', function(data){
   console.log("We got a websocket message: ", data);

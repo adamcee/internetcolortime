@@ -73,8 +73,11 @@ var twit = new twitter({
   access_token_secret: credentials.access_token_secret
 });
 
-//Set up the sockets to listen to our webserver on port 9099
-var server = app.listen(9099);
+//Including port 5000 because it is the Heroku default
+var port = process.env.PORT || 5000;
+var server = app.listen(port, function(){
+  console.log("Express listening on port %d in %s mode.") //%d %s not always getting replaced...minor issue
+});
 var io = require('socket.io').listen(server);
 
 //moment.js handles time
@@ -112,17 +115,22 @@ io.on('connection', function(socket){
 });
 /**/
 
-
+function showTweet(tweet){
+  setTimeout(function(){
+    console.log(tweet.text);
+  },3000);
+}
 //Check out colorhexa.com....use instead of 'colors' file to pull a full color list? Then will have to parse for 'summer blue', etc
 
 startTime = getTimeStamp(); 
 var colorBuffer = [];
-console.log('start time is ',startTime);
 
 //pull and handle the Twitter stream
 twit.stream('statuses/filter', {track: colors}, function(stream){
   stream.on('data', function(tweet){    
-      console.log('TWEET');
+      //console.log(tweet.text);
+      showTweet(tweet);
+      //console.log('TWEET');
 
       //Aggregate tweets over our time interval (should be 4 seconds)
       if(!intervalPassed(startTime, timeInterval)){
