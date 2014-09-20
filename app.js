@@ -63,14 +63,16 @@ app.use(function(err, req, res, next) {
 //for handling twitter public stream and tracking color words
 var twitter = require('ntwitter');
 var tHandler = require('./handle-tweet.js')();
-var credentials = require('./credentials.js');//twitter stream auth
+/* Using Heroku - Twitter credentials set as env vars. You may wish to create and require 
+ * your own credentials.js file. You must create your own twitter api key and use its credentials.
+var credentials = require('./credentials.js');//twitter stream auth */
 
-//ntwitter obj with authentication 
+//ntwitter obj with authentication. Pulled from env vars. If using credentials.js, do like so: consumer_key: credentials.consumer_key
 var twit = new twitter({
-  consumer_key: credentials.consumer_key,
-  consumer_secret: credentials.consumer_secret,
-  access_token_key: credentials.access_token_key,
-  access_token_secret: credentials.access_token_secret
+  consumer_key: process.env.consumer_key,
+  consumer_secret: process.env.consumer_secret,
+  access_token_key: process.env.access_token_key,
+  access_token_secret: process.env.access_token_secret
 });
 
 //Including port 5000 because it is the Heroku default

@@ -36,3 +36,6 @@ credentials.js
 
 # Somewhere to keep temp stuff, whatever
 scratch
+
+#Local environment file for Heroku
+.env
