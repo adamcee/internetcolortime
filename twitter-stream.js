@@ -9,7 +9,11 @@ var twitter = require('ntwitter');
 var handleTweet = require('./handle-tweet.js');
 
 var colors = require('./color-list.js');//all colors we want
+
+/*Unneeded for Heroku deployment (twitter secrets/keys in env vars. 
+ *To run locally create your own credentials.js file and uncomment - see below for guidance on credentials.js file.
 var credentials = require('./credentials.js');//twitter stream auth
+ */
 
 debugger;
 
