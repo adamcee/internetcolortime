@@ -16,19 +16,6 @@
  * July 2014
  * **********************************************************************/
 
-/* Function
- * Initializer to give us all our methods, etc
- */
-var create = function(){
-  var tw = {};
-  
-  tw.getDesiredWords = getDesiredWords;
-  tw.mode = mode;
-  tw.parse = parse;
-  tw.parseTwitterDate = parseTwitterDate;
-
-  return tw;
-}
 
 /* Function 
  * Args: 
@@ -179,6 +166,21 @@ var mode = function(array){
 function parseTwitterDate(tweet){
   var dadate = new Date(Date.parse(tweet.created_at));
   return dadate/1000;//JS does time since epoch in ms, most other stuff in seconds
+}
+
+
+/* Function
+ * Initializer to give us all our methods, etc
+ */
+var create = function(){
+  var tw = {};
+  
+  tw.getDesiredWords = getDesiredWords;
+  tw.mode = mode;
+  tw.parse = parse;
+  tw.parseTwitterDate = parseTwitterDate;
+
+  return tw;
 }
 
 //Exports

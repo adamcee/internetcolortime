@@ -1,13 +1,10 @@
 /************************************************************************************************* 
  * displayColorOfTheDay.js
  * THIS FILE MUST BE IN public/javascripts
- *
  * Generate rounded shapeangles - 'swatches'
  * Use 'swatches' to represent discrete chunks of time with color
  * A 'SwatchSpace' contains a group of Swatches and information about itself
- *
  * For example, a SwatchSpace of 60 swatches can represent one minute with 15 '4-second' Swatches
- *
  * This files contains classes and functions for creating and rendering SwatchSpaces and Swatches
  *
  * IMPORTANT 8/8/14:
@@ -15,12 +12,8 @@
  * websockets for internetcolortime. All the action happens here
  ************************************************************************************************/
 
-/********************************Main Application*************************
- *
- *************************************************************************/
 
-//
-//CREATE SWATCHSPACE
+/********************************Main Application*************************/
 
 //Properties of the coordinate space we are displaying our swatches in
 /*Set Canvas width and height - eventually these should be derived from CSS container of canvas*/
@@ -29,15 +22,12 @@ var canHeight = 500;
 view.viewSize.width = canWidth;
 view.viewSize.height = canHeight;
 
-var coolnewswatchspace = SwatchSpace(canWidth, canHeight, 5,3);
+var cools = SwatchSpace(canWidth, canHeight, 5,3);
+var cpArr = cools.centerPoints;
 
-var cpArr = coolnewswatchspace.centerPoints;
-var cools = coolnewswatchspace;
+/*** Websocket Stuff And Animation/drawing Swatches  ***/
 
-//
-//WEBSOCKET STUFF AND ANIMATION/DRAWING SWATCHES 
-
-//NOTE: CHANGE TO YOUR SETTINGS. Currently set for Heroku deployment
+//CHANGE TO YOUR SETTINGS. Currently set for Heroku deployment
 var socket = io.connect(window.location.hostname);
 
 //confirm connection
@@ -48,15 +38,14 @@ socket.on('test', function(data){
 //when new colorstamp received draw swatch to represent it
 socket.on('colorstamp', function(colorstamp){
   
-  //Draw a swatch!!!!
+  //Draw a swatch
   var swatchColor = colorstamp.modeColors[0];//for now ignore ties...
   cools.drawSwatchesForever(swatchColor, createSmallSwatch);
   view.update();//needed to re-render canvas correctly on draw
 
-  //test/debug
+  /*** test/debug ***/
   //iterate thru colorswatch obj. a lot of console messages. Note client receives LOTS more data than we currently use...
   console.log('Received colorstamp! start: '+colorstamp.start+ ' end: '+colorstamp.end);
-  
   colorstamp.modeColors.forEach(function(color){console.log("Top color is: ",color)});
   console.log('Count of top color is: ',colorstamp.modeCount);
 
@@ -68,7 +57,6 @@ socket.on('colorstamp', function(colorstamp){
     var color = colorKeys[i];
     console.log(color +' -- ' +allColors[color]);
   }
-  
 });//close socket.on('colorstamp'
 
 
@@ -103,7 +91,7 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
     paperLayers: [],
     swatches: [],
     centerPoints:  [],
-    pointer_cp: 0,//pointer for centerPoints arr to track most recently created swatch
+    cp_pointer: 0,//pointer for centerPoints arr to track most recently created swatch
     
 
     setSwatchSize: function(){
@@ -143,19 +131,28 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
 
 
     //Applies a swatch-rendering function of choice to draw Swatch at a given point
+    /* Func: drawSwatch
+     * Args: Point, Size, Color, Function
+     * Notes: renderFunc arg must return a Paper.js Object (should be a Swatch). renderFunc does the actual rendering on screen.
+     */
     drawSwatch:  function(centerPoint, size, color, renderFunc){
-      renderFunc(centerPoint, size, color);
+       r= renderFunc(centerPoint, size, color);
+       /*
+       function onFrame(event){
+         r.fillColor.hue += 1;
+       }
+       */
     },
 
 
-    //Draw swatch @ centerpoint[pointer_cp] - used to fill swatchspaces in an order..
+    //Draw swatch @ centerpoint[cp_pointer] - used to fill swatchspaces in an order..
     //Checks pointer position and will not draw once array size is reached
     //Returns true on successful draw and false on max reached
     drawNextSwatch:  function(color, renderFunc){
-      if(this.pointer_cp < this.centerPoints.length){
-        this.drawSwatch(this.centerPoints[this.pointer_cp],this.swatchSize,color,renderFunc);
-        this.pointer_cp +=1;
-        console.log('drawing gridPos ',this.pointer_cp);
+      if(this.cp_pointer < this.centerPoints.length){
+        this.drawSwatch(this.centerPoints[this.cp_pointer],this.swatchSize,color,renderFunc);
+        this.cp_pointer +=1;
+        console.log('drawing gridPos ',this.cp_pointer);
         return true;
       }
       else{
@@ -169,15 +166,15 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
     //Return statement is an anachronism BUT allows this to be interchanged w/drawNextSwatch easily
     //....a hacked-up function....
     drawSwatchesForever:  function(color, renderFunc){
-      if(this.pointer_cp < this.centerPoints.length){
-        this.drawSwatch(this.centerPoints[this.pointer_cp],this.swatchSize,color,renderFunc);
-        this.pointer_cp +=1;
-        console.log('drawing gridPos ',this.pointer_cp);
+      if(this.cp_pointer < this.centerPoints.length){
+        this.drawSwatch(this.centerPoints[this.cp_pointer],this.swatchSize,color,renderFunc);
+        this.cp_pointer +=1;
+        console.log('drawing gridPos ',this.cp_pointer);
         return true;
       }
       //reset and draw from the top
       else{
-        this.pointer_cp = 0;
+        this.cp_pointer = 0;
         return true;
       }
     }

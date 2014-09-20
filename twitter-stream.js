@@ -13,12 +13,15 @@ var credentials = require('./credentials.js');//twitter stream auth
 
 debugger;
 
-/*Make ntwitter obj with authentication for twitter public stream*/
+/*Make ntwitter obj with authentication for twitter public stream
+ *Currently configured for Heroku - keys/secrets are Heroku environment vars.
+  For use on server set up credentials.js file with secrets/keys and require
+  */
 var twit = new twitter({
-  consumer_key: credentials.consumer_key,
-  consumer_secret: credentials.consumer_secret,
-  access_token_key: credentials.access_token_key,
-  access_token_secret: credentials.access_token_secret
+  consumer_key: process.env.consumer_key,
+  consumer_secret: process.env.consumer_secret,
+  access_token_key: procee.env.access_token_key,
+  access_token_secret: process.env.access_token_secret
 });
 
 
