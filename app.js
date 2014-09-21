@@ -89,7 +89,7 @@ app.listen(theport);
 console.log("http server on port:" + theport);
 
 function handler(req, res){
-  fs.readFile(__dirname + "public/coloroftheday.html",
+  fs.readFile(__dirname + "/public/coloroftheday.html",
       function(err,data){
         if(err){
           res.writeHead(500);
