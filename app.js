@@ -81,16 +81,18 @@ var server = app.listen(port, function(){
   console.log("Express listening on port %d in %s mode.") //%d %s not always getting replaced...minor issue
 });
 var io = require('socket.io').listen(server);
+console.log('socket.io created');
 
 //moment.js handles time
 var moment = require('moment');
-
+console.log('moment created');
 
 //This is our 'unit of time' - streaming to client every timeInterval seconds
 var timeInterval = 4;
 
 //Array with all colors we want
 var colors = require('./color-list.js');
+console.log('colors created');
 
 /* Connect to Twitter Public Stream and track color keywords. 
  * Handle keywords by emitting to client via websocket, and saving to DB.
