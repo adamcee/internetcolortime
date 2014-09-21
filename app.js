@@ -75,12 +75,37 @@ var twit = new twitter({
   access_token_secret: process.env.access_token_secret
 });
 
+//Attempting an approach to socket.io on heroku from:
+//https://github.com/mongolab/tractorpush-server/blob/master/app.js
+//My original code (works fine w/foreman locally, and non-heroku, commented out for now. 9-20-14
+
 //Including port 5000 because it is the Heroku default
-var port = process.env.PORT || 5000;
+/**
+var app = require('http').createServer(handler),
+    io = require('socket.io').listen(app);
+
+theport = process.env.PORT || 2000;
+app.listen(theport);
+console.log("http server on port:" + theport);
+
+function handler(req, res){
+  fs.readFile(__dirname + "/index.html",
+      function(err,data){
+        if(err){
+          res.writeHead(500);
+          return res.end("Error loading index.html");
+          }
+            res.writeHead(200);
+            res.end(data);
+        });
+}
+**/
+var port = process.env.PORT || 2000;
 var server = app.listen(port, function(){
-  console.log("Express listening on port %d in %s mode.") //%d %s not always getting replaced...minor issue
+  console.log("Express listening on port %d in %s mode. Port is: " + port) //%d %s not always getting replaced...minor issue
 });
 var io = require('socket.io').listen(server);
+
 console.log('socket.io created');
 
 //moment.js handles time
