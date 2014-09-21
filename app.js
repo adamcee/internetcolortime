@@ -89,11 +89,11 @@ app.listen(theport);
 console.log("http server on port:" + theport);
 
 function handler(req, res){
-  fs.readFile(__dirname + "/index.html",
+  fs.readFile(__dirname + "public/coloroftheday.html",
       function(err,data){
         if(err){
           res.writeHead(500);
-          return res.end("Error loading index.html");
+          return res.end("Error loading coloroftheday.html");
           }
             res.writeHead(200);
             res.end(data);
