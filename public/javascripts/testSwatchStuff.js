@@ -1,9 +1,48 @@
 /************************************************************************************************* 
- SwatchSpace.js
-  9-28-14
- adam.cahan@gmail.com
- Functions for creating and managing Swatches, SwatchSpaces, etc
+ * displayColorOfTheDay.js
+ * THIS FILE MUST BE IN public/javascripts
+ * Generate rounded shapeangles - 'swatches'
+ * Use 'swatches' to represent discrete chunks of time with color
+ * A 'SwatchSpace' contains a group of Swatches and information about itself
+ * For example, a SwatchSpace of 60 swatches can represent one minute with 15 '4-second' Swatches * This files contains classes and functions for creating and rendering SwatchSpaces and Swatches
+ *
+ * IMPORTANT 8/8/14:
+ * This class also currently handles Canvas rendering and 
+ * websockets for internetcolortime. All the action happens here
  ************************************************************************************************/
+
+
+/********************************Main Application*************************/
+
+//Properties of the coordinate space we are displaying our swatches in
+/*Set Canvas width and height - eventually these should be derived from CSS container of canvas*/
+var canWidth = 1000;
+var canHeight = 500;
+view.viewSize.width = canWidth;
+view.viewSize.height = canHeight;
+
+var cools = SwatchSpace(canWidth, canHeight, 5,3);
+var cpArr = cools.centerPoints;
+var activeSwatch = cools.activeSwatch;//easier typing
+
+
+/*Paper.js animation*/
+function onFrame(event){
+    console.log('ONFRAME***');
+    console.log('***onFrame for ActiveSwatch id: '+activeSwatch.id);
+    //activeSwatch.fillColor.hue += 1
+}
+
+//TEST COLORS FOR WORKING W/PAPER.JS ONLY
+var testColors = ['black','white','black','red','green','blue','orange','yellow','pink','black','white','purple','grey','brown','blue'];
+
+//loop forever!
+  for(var i = 0; i< testColors.length; i++){
+    cools.drawSwatchesForever(testColors[i], createSmallSwatch);
+    view.update();//needed to re-render canvas correctly on draw
+  }
+
+
 
 /*************************************************************************************************************************
  * Function: SwatchSpace
@@ -202,12 +241,4 @@ function createSmallSwatch(centerPoint, theSize, color){
     return mySwatch;
 }
 
-//Initializer for exporting
-var create = function(){
-  var c = {};
-  c.SwatchSpace = SwatchSpace;
-  c.createSwatch = createSwatch;
-  c.createSmallSwatch = createSmallSwatch;
-}
 
-module.exports = create;
