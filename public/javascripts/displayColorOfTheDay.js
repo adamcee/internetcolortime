@@ -24,7 +24,17 @@ view.viewSize.height = canHeight;
 
 var cools = SwatchSpace(canWidth, canHeight, 5,3);
 var cpArr = cools.centerPoints;
+var activeSwatch = cools.activeSwatch;//easier typing
 
+
+/*Paper.js animation*/
+function onFrame(event){
+  if(activeSwatch){ //avoid minor null error
+    console.log('ONFRAME***');
+    //activeSwatch.fillColor.hue += 1
+    activeSwatch.opacity += 1
+  }
+}
 /*** Websocket Stuff And Animation/drawing Swatches  ***/
 
 //CHANGE TO YOUR SETTINGS. Currently set for Heroku deployment
@@ -89,8 +99,9 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
     swatchFull: false,//true if all gridpoints in swatch are 'filled', i.e. rendered
 
     paperLayers: [],
-    swatches: [],
+    swatches: [], //Not used as of 9-26
     centerPoints:  [],
+    activeSwatch: null, //hold Paper obj of most recently created or 'active' swatch. cp_pointer points to centerpoint for this swatch. Prob should consolidate data structures
     cp_pointer: 0,//pointer for centerPoints arr to track most recently created swatch
     
 
@@ -136,12 +147,9 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
      * Notes: renderFunc arg must return a Paper.js Object (should be a Swatch). renderFunc does the actual rendering on screen.
      */
     drawSwatch:  function(centerPoint, size, color, renderFunc){
-       r= renderFunc(centerPoint, size, color);
-       /*
-       function onFrame(event){
-         r.fillColor.hue += 1;
-       }
-       */
+       renderedSwatch = renderFunc(centerPoint, size, color);
+       return renderedSwatch
+       
     },
 
 
@@ -167,7 +175,8 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
     //....a hacked-up function....
     drawSwatchesForever:  function(color, renderFunc){
       if(this.cp_pointer < this.centerPoints.length){
-        this.drawSwatch(this.centerPoints[this.cp_pointer],this.swatchSize,color,renderFunc);
+        this.activeSwatch = this.drawSwatch(this.centerPoints[this.cp_pointer],this.swatchSize,color,renderFunc);
+        console.log('***ACTIVESWATCH GROUPID: '+this.activeSwatch.id+' FILLCOLOR: '+this.activeSwatch.fillColor);
         this.cp_pointer +=1;
         console.log('drawing gridPos ',this.cp_pointer);
         return true;

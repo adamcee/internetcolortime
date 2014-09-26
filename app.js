@@ -81,6 +81,7 @@ var twit = new twitter({
 //My original code (works fine w/foreman locally, and non-heroku, commented out for now. 9-20-14
 
 //Including port 5000 because it is the Heroku default
+/**
 var app = require('http').createServer(handler),
     io = require('socket.io').listen(app);
 
@@ -99,14 +100,14 @@ function handler(req, res){
             res.end(data);
         });
 }
-
-/**
+**/
+/**/
 var port = process.env.PORT || 2000;
 var server = app.listen(port, function(){
   console.log("Express listening on port %d in %s mode. Port is: " + port) //%d %s not always getting replaced...minor issue
 });
 var io = require('socket.io').listen(server);
-**/
+/**/
 
 console.log('socket.io created');
 
