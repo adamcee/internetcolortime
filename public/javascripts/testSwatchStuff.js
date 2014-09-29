@@ -36,13 +36,12 @@ function onFrame(event){
 //TEST COLORS FOR WORKING W/PAPER.JS ONLY
 var testColors = ['black','white','black','red','green','blue','orange','yellow','pink','black','white','purple','grey','brown','blue'];
 
-//loop forever!
-  for(var i = 0; i< testColors.length; i++){
-    cools.drawSwatchesForever(testColors[i], createSmallSwatch);
-    view.update();//needed to re-render canvas correctly on draw
-  }
+for(var i = 0; i< testColors.length; i++){
+  cools.drawSwatchesForever(testColors[i], createSmallSwatch);
+  view.update();//needed to re-render canvas correctly on draw
+}
 
-
+view.onFrame();
 
 /*************************************************************************************************************************
  * Function: SwatchSpace
