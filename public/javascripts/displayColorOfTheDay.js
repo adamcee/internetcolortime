@@ -13,6 +13,16 @@
  ************************************************************************************************/
 
 
+//Text for testing activeSwatch
+var drawText = function(point,content){
+  return new PointText({
+    point: point,
+         justification: 'center',
+         fontSize: 30,
+         fillColor: 'pink',
+         content: content
+  });
+}
 /********************************Main Application*************************/
 
 //Properties of the coordinate space we are displaying our swatches in
@@ -176,6 +186,7 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
     drawSwatchesForever:  function(color, renderFunc){
       if(this.cp_pointer < this.centerPoints.length){
         this.activeSwatch = this.drawSwatch(this.centerPoints[this.cp_pointer],this.swatchSize,color,renderFunc);
+        drawText(this.centerPoints[this.cp_pointer], activeSwatch.id);
         console.log('***ACTIVESWATCH GROUPID: '+this.activeSwatch.id+' FILLCOLOR: '+this.activeSwatch.fillColor);
         this.cp_pointer +=1;
         console.log('drawing gridPos ',this.cp_pointer);

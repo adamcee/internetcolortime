@@ -11,7 +11,24 @@
  * websockets for internetcolortime. All the action happens here
  ************************************************************************************************/
 
+//Text for testing activeSwatch
+var drawText = function(point,text){
+  return new PointText({
+    point: point,
+         justification: 'center',
+         fontSize: 30,
+         fillColor: 'pink'
+  });
+}
 
+//Circle for testing ActiveSwatch
+var drawCircle = function(center){
+  return new Path.Circle({
+    center: center,
+    radius: 40,
+    fillColor: 'pink'
+  });
+}
 /********************************Main Application*************************/
 
 //Properties of the coordinate space we are displaying our swatches in
@@ -26,12 +43,8 @@ var cpArr = cools.centerPoints;
 var activeSwatch = cools.activeSwatch;//easier typing
 
 
-/*Paper.js animation*/
-function onFrame(event){
-    console.log('ONFRAME***');
-    console.log('***onFrame for ActiveSwatch id: '+activeSwatch.id);
-    //activeSwatch.fillColor.hue += 1
-}
+//myCircle = drawCircle(cools.centerPoints[0]);
+
 
 //TEST COLORS FOR WORKING W/PAPER.JS ONLY
 var testColors = ['black','white','black','red','green','blue','orange','yellow','pink','black','white','purple','grey','brown','blue'];
@@ -41,7 +54,16 @@ for(var i = 0; i< testColors.length; i++){
   view.update();//needed to re-render canvas correctly on draw
 }
 
-view.onFrame();
+/*Paper.js animation*/
+function onFrame(event){
+  console.log('Frame!');
+    for(var i = 0; i < cools.swatches.length; i++){
+      console.log('MessWith: '+i);
+      myCircle = drawCircle(cools.centerPoints[i]);
+      activeSwatch = cools.swatches[i]
+      //activeSwatch.fillColor.hue +=1;
+    }
+}
 
 /*************************************************************************************************************************
  * Function: SwatchSpace
@@ -70,10 +92,11 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
     swatchFull: false,//true if all gridpoints in swatch are 'filled', i.e. rendered
 
     paperLayers: [],
-    swatches: [], //Not used as of 9-26
+    swatches: [], 
+    activeSwatch_pointer: 0, //pointer for swatches[]. 
     centerPoints:  [],
-    activeSwatch: null, //hold Paper obj of most recently created or 'active' swatch. cp_pointer points to centerpoint for this swatch. Prob should consolidate data structures
     cp_pointer: 0,//pointer for centerPoints arr to track most recently created swatch
+    activeSwatch: null, //hold Paper obj of most recently created or 'active' swatch. cp_pointer points to centerpoint for this swatch. Prob should consolidate data structures
     
 
     setSwatchSize: function(){
@@ -119,6 +142,8 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
      */
     drawSwatch:  function(centerPoint, size, color, renderFunc){
        renderedSwatch = renderFunc(centerPoint, size, color);
+       this.swatches[this.activeSwatch_pointer] = renderedSwatch;
+       this.activeSwatch_pointer += 1 % (xSpace*ySpace);//xSpace*ySpace = total # of swatches. Array 'wraps' back around
        return renderedSwatch
        
     },
