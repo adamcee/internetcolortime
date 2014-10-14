@@ -38,6 +38,10 @@ var activeSwatch = cools.activeSwatch;//easier typing
 
 
 /*Paper.js animation*/
+/**/
+//Test random movement of a swatch
+var destination = Point.random() * view.size;
+/*
 function onFrame(event){
   if(activeSwatch){ //avoid minor null error
     console.log('ONFRAME***');
@@ -45,6 +49,8 @@ function onFrame(event){
     activeSwatch.opacity += 1
   }
 }
+*/
+/***/
 /*** Websocket Stuff And Animation/drawing Swatches  ***/
 
 //CHANGE TO YOUR SETTINGS. Currently set for Heroku deployment
@@ -158,6 +164,7 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
      */
     drawSwatch:  function(centerPoint, size, color, renderFunc){
        renderedSwatch = renderFunc(centerPoint, size, color);
+       this.swatches.push(renderedSwatch);
        return renderedSwatch
        
     },

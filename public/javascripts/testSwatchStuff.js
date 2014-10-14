@@ -12,23 +12,25 @@
  ************************************************************************************************/
 
 //Text for testing activeSwatch
-var drawText = function(point,text){
-  return new PointText({
-    point: point,
-         justification: 'center',
-         fontSize: 30,
-         fillColor: 'pink'
-  });
+var drawText = function (point, text){
+    return new PointText({
+      point: point,
+           justification: 'center',
+           fontSize: 30,
+           fillColor: 'pink'
+    });
 }
 
 //Circle for testing ActiveSwatch
-var drawCircle = function(center){
-  return new Path.Circle({
-    center: center,
-    radius: 40,
-    fillColor: 'pink'
-  });
+var drawCircle = function (center){
+    return new Path.Circle({
+      center: center,
+      radius: 40,
+      fillColor: 'pink'
+    });
 }
+
+
 /********************************Main Application*************************/
 
 //Properties of the coordinate space we are displaying our swatches in
@@ -46,8 +48,65 @@ var activeSwatch = cools.activeSwatch;//easier typing
 //myCircle = drawCircle(cools.centerPoints[0]);
 
 
+/*** Websocket Stuff And Animation/drawing Swatches  ***/
+
+//CHANGE TO YOUR SETTINGS. Currently set for Heroku deployment
+var socket = io.connect(window.location.hostname);
+
+//confirm connection
+socket.on('test', function(data){
+  console.log("websocket test message: ", data);
+});
+
+//when new colorstamp received draw swatch to represent it
+socket.on('colorstamp', function(colorstamp){
+  
+  //Draw a swatch
+  var swatchColor = colorstamp.modeColors[0];//for now ignore ties...
+  cools.drawSwatchesForever(swatchColor, createSmallSwatch);
+  view.update();//needed to re-render canvas correctly on draw
+
+  /*** test/debug ***/
+  //iterate thru colorswatch obj. a lot of console messages. Note client receives LOTS more data than we currently use...
+  console.log('Received colorstamp! start: '+colorstamp.start+ ' end: '+colorstamp.end);
+  colorstamp.modeColors.forEach(function(color){console.log("Top color is: ",color)});
+  console.log('Count of top color is: ',colorstamp.modeCount);
+
+  var allColors = colorstamp.allColors;
+  var colorKeys = Object.keys(allColors);
+
+  console.log('Additional colors.....');
+  for(var i = 0; i< colorKeys.length; i++){
+    var color = colorKeys[i];
+    console.log(color +' -- ' +allColors[color]);
+  }
+});//close socket.on('colorstamp'
+
+//when new colorstamp received draw swatch to represent it
+socket.on('colorstamp', function(colorstamp){
+  
+  //Draw a swatch
+  var swatchColor = colorstamp.modeColors[0];//for now ignore ties...
+  cools.drawSwatchesForever(swatchColor, createSmallSwatch);
+  view.update();//needed to re-render canvas correctly on draw
+
+  /*** test/debug ***/
+  //iterate thru colorswatch obj. a lot of console messages. Note client receives LOTS more data than we currently use...
+  console.log('Received colorstamp! start: '+colorstamp.start+ ' end: '+colorstamp.end);
+  colorstamp.modeColors.forEach(function(color){console.log("Top color is: ",color)});
+  console.log('Count of top color is: ',colorstamp.modeCount);
+
+  var allColors = colorstamp.allColors;
+  var colorKeys = Object.keys(allColors);
+
+  console.log('Additional colors.....');
+  for(var i = 0; i< colorKeys.length; i++){
+    var color = colorKeys[i];
+    console.log(color +' -- ' +allColors[color]);
+  }
+});//close socket.on('colorstamp'
 //TEST COLORS FOR WORKING W/PAPER.JS ONLY
-var testColors = ['black','white','black','red','green','blue','orange','yellow','pink','black','white','purple','grey','brown','blue'];
+var testColors = ['black','white','black','red','green','blue','orange','yellow','green','black','white','purple','pink','brown','blue'];
 
 for(var i = 0; i< testColors.length; i++){
   cools.drawSwatchesForever(testColors[i], createSmallSwatch);
@@ -55,14 +114,25 @@ for(var i = 0; i< testColors.length; i++){
 }
 
 /*Paper.js animation*/
-function onFrame(event){
-  console.log('Frame!');
-    for(var i = 0; i < cools.swatches.length; i++){
-      console.log('MessWith: '+i);
-      myCircle = drawCircle(cools.centerPoints[i]);
-      activeSwatch = cools.swatches[i]
-      //activeSwatch.fillColor.hue +=1;
+
+var ani = cools.swatches[4]; 
+endpoints = [];
+
+for(var i = 0; i< cools.swatches.length;i++){
+  endpoints.push(Point.random() * view.size);
+}
+var destination = Point.random() * view.size;
+function onFrame(){
+  //ani.alpha += 1;
+  for(var i = 0; i<cools.swatches.length;i++){
+    ani = cools.swatches[i];
+    var vector = endpoints[i] - ani.position;
+    ani.position += vector /30;
+    ani.content = Math.round(vector.length);
+    if(vector.length < 5){
+      endpoints[i] = Point.random() * view.size;
     }
+  }
 }
 
 /*************************************************************************************************************************
@@ -87,19 +157,20 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
     height: pixelHeight,
     xSpace: xSpace,
     ySpace: ySpace,
+    totalSwatches: 0,//set w/setSwatchSize init func
     swatchSize: null,//Will be replaced w/paper.js Size obj on init
     firstPoint: null,//will be replaced w/paper.js Point obj on init
     swatchFull: false,//true if all gridpoints in swatch are 'filled', i.e. rendered
 
     paperLayers: [],
     swatches: [], 
-    activeSwatch_pointer: 0, //pointer for swatches[]. 
+    activeSwatch_pointer: 0, //pointer for swatches[]. Wraps around to limit max # of swatches. 
     centerPoints:  [],
     cp_pointer: 0,//pointer for centerPoints arr to track most recently created swatch
     activeSwatch: null, //hold Paper obj of most recently created or 'active' swatch. cp_pointer points to centerpoint for this swatch. Prob should consolidate data structures
     
 
-    setSwatchSize: function(){
+    setSwatchSize: function(){ //Also sets totalSwatches val
                      this.swatchSize = new Size(this.width/this.xSpace, this.height/this.ySpace);
     },
 
@@ -108,6 +179,10 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
     setTopLeftPoint: function(){
                        this.firstPoint = new Point(view.center.x/(this.xSpace),view.center.y/(this.ySpace));
                      },
+
+    setTotalSwatches: function(){
+                     this.totalSwatches = this.xSpace*this.ySpace;
+                      },
 
 
     testSwatchSize: function(){//test func
@@ -134,6 +209,13 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
       }
     },
 
+    //Initialization function.Must be run before using a SwatchSpace
+    init: function(){
+            this.setSwatchSize();//Must run before setTopLeftPoint()
+            this.setTopLeftPoint();
+            this.setTotalSwatches();
+            this.generateCenterPoints();
+          },
 
     //Applies a swatch-rendering function of choice to draw Swatch at a given point
     /* Func: drawSwatch
@@ -143,11 +225,18 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
     drawSwatch:  function(centerPoint, size, color, renderFunc){
        renderedSwatch = renderFunc(centerPoint, size, color);
        this.swatches[this.activeSwatch_pointer] = renderedSwatch;
-       this.activeSwatch_pointer += 1 % (xSpace*ySpace);//xSpace*ySpace = total # of swatches. Array 'wraps' back around
+       //this.moveAcSwatchPointer();
+       this.activeSwatch_pointer += 1 % (this.totalSwatches);//total # of swatches. Array 'wraps' back around, ring-buffer-like.
        return renderedSwatch
        
     },
 
+    //Move activeSwatch_pointer to next position. Essentially using swatches[] like a ring buffer
+    moveAcSwatchPointer: function(){
+       this.activeSwatch_pointer += 1 % (this.xSpace*this.ySpace);//total # of swatches. Array 'wraps' back around, ring-buffer-like.
+    },
+                         
+                             
 
     //Draw swatch @ centerpoint[cp_pointer] - used to fill swatchspaces in an order..
     //Checks pointer position and will not draw once array size is reached
@@ -186,9 +275,12 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
   }//close SwatchSpace obj 
 
   //Do the pseudo-classical constructor-type stuff....
+  ss.init();
+  /**replacing w init func
   ss.setSwatchSize();
   ss.setTopLeftPoint();
   ss.generateCenterPoints();
+  **/
 
   return ss;
 }//end SwatchSpace func
@@ -264,5 +356,4 @@ function createSmallSwatch(centerPoint, theSize, color){
     //Return the Group so it can be used
     return mySwatch;
 }
-
 
