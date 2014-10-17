@@ -18,12 +18,12 @@
 
 //Properties of the coordinate space we are displaying our swatches in
 /*Set Canvas width and height - eventually these should be derived from CSS container of canvas*/
-var canWidth = 1000;
-var canHeight = 500;
+var canWidth = 500;
+var canHeight = 200;
 view.viewSize.width = canWidth;
 view.viewSize.height = canHeight;
 
-var cools = SwatchSpace(canWidth, canHeight, 5,3);
+var cools = SwatchSpace(canWidth, canHeight, 5,3,view.center);
 var cpArr = cools.centerPoints;
 var activeSwatch = cools.activeSwatch;//easier typing
 
@@ -44,7 +44,8 @@ socket.on('colorstamp', function(colorstamp){
   
   //Draw a swatch
   var swatchColor = colorstamp.modeColors[0];//for now ignore ties...
-  cools.drawSwatchesForever(swatchColor, createSmallSwatch);
+  //cools.drawSwatchesForever(swatchColor, createSmallSwatch);
+  cools.drawNextSwatch(swatchColor, createSmallSwatch);
   view.update();//needed to re-render canvas correctly on draw
 
   /*** test/debug ***/
@@ -63,6 +64,29 @@ socket.on('colorstamp', function(colorstamp){
   }
 });//close socket.on('colorstamp'
 
+//HACK
+var destination = new Point(cools.position.x, cools.position.y + 100);
+
+mark = new Path.circle(destination, 50);
+mark.fillColor('pink');
+//Animate minute swatchspace once filled up
+function onFrame(){
+
+  if(cools.swatchFull){
+
+
+
+  }
+  //if minute swatchspace full animate & combine w/hour swatchspace
+    //HACK
+    if(!minSwatchVectorSet){
+      var newPos = new Point(cools.group.position.x, cools.group.position.y+100);
+      vector = newPos - cools.group.position;
+    }
+    cools.group.position = vector / 40;
+    cools.setTopLeftPoint();
+    cools.generateCenterPoints();
+}
 
 /*************************************************************************************************************************
  * Function: SwatchSpace
@@ -78,14 +102,16 @@ socket.on('colorstamp', function(colorstamp){
  * This function essentially defines the SwatchSpace class. Used to create SwatchSpace object.
  * SwatchSpace is the primary tool for creating and handling Swatches and interacting with the canvas in internetcolortime
  ************************************************************************************************************************/
-function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
+function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace, ssCenterPoint){
 
   var ss = {
     //vars
+    group: new Group(),//Paper.js group for manipulating entire SwatchSpace easily
     width: pixelWidth,
     height: pixelHeight,
     xSpace: xSpace,
     ySpace: ySpace,
+    ssCenterPoint: null, 
 
     totalSwatches: 0,//set w/setSwatchSize init func
     swatchSize: null,//Will be replaced w/paper.js Size obj on init
@@ -99,14 +125,15 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
     activeSwatch: null, //hold Paper obj of most recently created or 'active' swatch. cp_pointer points to centerpoint for this swatch. Prob should consolidate data structures
     
     //funcs
-    setSwatchSize: function(){ //Also sets totalSwatches val
+    setSwatchSize: function(centerPoint){ //Also sets totalSwatches val
                      this.swatchSize = new Size(this.width/this.xSpace, this.height/this.ySpace);
     },
 
     
     //Must be run after setSwatchSize. SwatchSpace uses 'top left' coordinate as start point for drawing swatches
-    setTopLeftPoint: function(){
+    setTopLeftPoint: function(ssCenterPoint){
                        this.firstPoint = new Point(view.center.x/(this.xSpace),view.center.y/(this.ySpace));
+                       this.ssCenterPoint = ssCenterPoint;
                      },
 
     setTotalSwatches: function(){
@@ -141,7 +168,7 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
     //Initialization function.Must be run before using a SwatchSpace
     init: function(){
             this.setSwatchSize();//Must run before setTopLeftPoint()
-            this.setTopLeftPoint();
+            this.setTopLeftPoint(ssCenterPoint);
             this.setTotalSwatches();
             this.generateCenterPoints();
           },
@@ -171,7 +198,9 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
     //Returns true on successful draw and false on max reached
     drawNextSwatch:  function(color, renderFunc){
       if(this.cp_pointer < this.centerPoints.length){
-        this.drawSwatch(this.centerPoints[this.cp_pointer],this.swatchSize,color,renderFunc);
+        //Key step. Render swatch and add to Group
+        var renderedSwatch = this.drawSwatch(this.centerPoints[this.cp_pointer],this.swatchSize,color,renderFunc);
+        this.group.addChild(renderedSwatch);
         this.cp_pointer +=1;
         console.log('drawing gridPos ',this.cp_pointer);
         return true;
