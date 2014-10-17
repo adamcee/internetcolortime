@@ -1,10 +1,13 @@
 /************************************************************************************************* 
+ * TESTSWATCHANIMATION.JS
+ * TEST FILE FOR WORKING ON ANIMATION. DO NOT USE IN 'PRODUCTION'
  * displayColorOfTheDay.js
  * THIS FILE MUST BE IN public/javascripts
  * Generate rounded shapeangles - 'swatches'
  * Use 'swatches' to represent discrete chunks of time with color
  * A 'SwatchSpace' contains a group of Swatches and information about itself
- * For example, a SwatchSpace of 60 swatches can represent one minute with 15 '4-second' Swatches * This files contains classes and functions for creating and rendering SwatchSpaces and Swatches
+ * For example, a SwatchSpace of 60 swatches can represent one minute with 15 '4-second' Swatches
+ * This files contains classes and functions for creating and rendering SwatchSpaces and Swatches
  *
  * IMPORTANT 8/8/14:
  * This class also currently handles Canvas rendering and 
@@ -225,7 +228,6 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
     drawSwatch:  function(centerPoint, size, color, renderFunc){
        renderedSwatch = renderFunc(centerPoint, size, color);
        this.swatches[this.activeSwatch_pointer] = renderedSwatch;
-       //this.moveAcSwatchPointer();
        this.activeSwatch_pointer += 1 % (this.totalSwatches);//total # of swatches. Array 'wraps' back around, ring-buffer-like.
        return renderedSwatch
        
@@ -276,11 +278,6 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
 
   //Do the pseudo-classical constructor-type stuff....
   ss.init();
-  /**replacing w init func
-  ss.setSwatchSize();
-  ss.setTopLeftPoint();
-  ss.generateCenterPoints();
-  **/
 
   return ss;
 }//end SwatchSpace func
@@ -356,4 +353,5 @@ function createSmallSwatch(centerPoint, theSize, color){
     //Return the Group so it can be used
     return mySwatch;
 }
+
 

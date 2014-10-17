@@ -13,16 +13,7 @@
  ************************************************************************************************/
 
 
-//Text for testing activeSwatch
-var drawText = function(point,content){
-  return new PointText({
-    point: point,
-         justification: 'center',
-         fontSize: 30,
-         fillColor: 'pink',
-         content: content
-  });
-}
+
 /********************************Main Application*************************/
 
 //Properties of the coordinate space we are displaying our swatches in
@@ -37,20 +28,7 @@ var cpArr = cools.centerPoints;
 var activeSwatch = cools.activeSwatch;//easier typing
 
 
-/*Paper.js animation*/
-/**/
-//Test random movement of a swatch
-var destination = Point.random() * view.size;
-/*
-function onFrame(event){
-  if(activeSwatch){ //avoid minor null error
-    console.log('ONFRAME***');
-    //activeSwatch.fillColor.hue += 1
-    activeSwatch.opacity += 1
-  }
-}
-*/
-/***/
+
 /*** Websocket Stuff And Animation/drawing Swatches  ***/
 
 //CHANGE TO YOUR SETTINGS. Currently set for Heroku deployment
@@ -86,8 +64,6 @@ socket.on('colorstamp', function(colorstamp){
 });//close socket.on('colorstamp'
 
 
-
-
 /*************************************************************************************************************************
  * Function: SwatchSpace
  * 
@@ -110,18 +86,20 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
     height: pixelHeight,
     xSpace: xSpace,
     ySpace: ySpace,
+
+    totalSwatches: 0,//set w/setSwatchSize init func
     swatchSize: null,//Will be replaced w/paper.js Size obj on init
     firstPoint: null,//will be replaced w/paper.js Point obj on init
     swatchFull: false,//true if all gridpoints in swatch are 'filled', i.e. rendered
 
-    paperLayers: [],
-    swatches: [], //Not used as of 9-26
+    swatches: [], 
+    activeSwatch_pointer: 0, //pointer for swatches[]. Wraps around to limit max # of swatches. 
     centerPoints:  [],
-    activeSwatch: null, //hold Paper obj of most recently created or 'active' swatch. cp_pointer points to centerpoint for this swatch. Prob should consolidate data structures
     cp_pointer: 0,//pointer for centerPoints arr to track most recently created swatch
+    activeSwatch: null, //hold Paper obj of most recently created or 'active' swatch. cp_pointer points to centerpoint for this swatch. Prob should consolidate data structures
     
-
-    setSwatchSize: function(){
+    //funcs
+    setSwatchSize: function(){ //Also sets totalSwatches val
                      this.swatchSize = new Size(this.width/this.xSpace, this.height/this.ySpace);
     },
 
@@ -130,6 +108,10 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
     setTopLeftPoint: function(){
                        this.firstPoint = new Point(view.center.x/(this.xSpace),view.center.y/(this.ySpace));
                      },
+
+    setTotalSwatches: function(){
+                     this.totalSwatches = this.xSpace*this.ySpace;
+                      },
 
 
     testSwatchSize: function(){//test func
@@ -156,6 +138,13 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
       }
     },
 
+    //Initialization function.Must be run before using a SwatchSpace
+    init: function(){
+            this.setSwatchSize();//Must run before setTopLeftPoint()
+            this.setTopLeftPoint();
+            this.setTotalSwatches();
+            this.generateCenterPoints();
+          },
 
     //Applies a swatch-rendering function of choice to draw Swatch at a given point
     /* Func: drawSwatch
@@ -164,11 +153,18 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
      */
     drawSwatch:  function(centerPoint, size, color, renderFunc){
        renderedSwatch = renderFunc(centerPoint, size, color);
-       this.swatches.push(renderedSwatch);
+       this.swatches[this.activeSwatch_pointer] = renderedSwatch;
+       this.activeSwatch_pointer += 1 % (this.totalSwatches);//total # of swatches. Array 'wraps' back around, ring-buffer-like.
        return renderedSwatch
        
     },
 
+    //Move activeSwatch_pointer to next position. Essentially using swatches[] like a ring buffer
+    moveAcSwatchPointer: function(){
+       this.activeSwatch_pointer += 1 % (this.xSpace*this.ySpace);//total # of swatches. Array 'wraps' back around, ring-buffer-like.
+    },
+                         
+                             
 
     //Draw swatch @ centerpoint[cp_pointer] - used to fill swatchspaces in an order..
     //Checks pointer position and will not draw once array size is reached
@@ -193,13 +189,13 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
     drawSwatchesForever:  function(color, renderFunc){
       if(this.cp_pointer < this.centerPoints.length){
         this.activeSwatch = this.drawSwatch(this.centerPoints[this.cp_pointer],this.swatchSize,color,renderFunc);
-        drawText(this.centerPoints[this.cp_pointer], activeSwatch.id);
         console.log('***ACTIVESWATCH GROUPID: '+this.activeSwatch.id+' FILLCOLOR: '+this.activeSwatch.fillColor);
         this.cp_pointer +=1;
         console.log('drawing gridPos ',this.cp_pointer);
         return true;
       }
       //reset and draw from the top
+      //NOTE: Write function for looping/ring buffer array type action to handle pointers? cp_pointer and activeSwatch pointer both have similar mechanisms...
       else{
         this.cp_pointer = 0;
         return true;
@@ -208,9 +204,7 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace){
   }//close SwatchSpace obj 
 
   //Do the pseudo-classical constructor-type stuff....
-  ss.setSwatchSize();
-  ss.setTopLeftPoint();
-  ss.generateCenterPoints();
+  ss.init();
 
   return ss;
 }//end SwatchSpace func
