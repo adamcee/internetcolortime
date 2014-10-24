@@ -18,16 +18,23 @@
 
 //Properties of the coordinate space we are displaying our swatches in
 /*Set Canvas width and height - eventually these should be derived from CSS container of canvas*/
-var canWidth = 500;
-var canHeight = 200;
-view.viewSize.width = canWidth;
-view.viewSize.height = canHeight;
+view.viewSize = [500,200];
 
-var cools = SwatchSpace(canWidth, canHeight, 5,3,view.center);
+/**
+centerCirc = new Path.Circle(view.center, 70);
+centerCirc.strokeColor = 'orange';
+centerCirc.fillColor = 'blue'
+**/
+var cools = SwatchSpace(500, 200, 5,3,view.center);
 var cpArr = cools.centerPoints;
 var activeSwatch = cools.activeSwatch;//easier typing
 
 
+//HACK FOR ANIMATING MINUTE SWATCHSPACE
+var destination = new Point(cools.ssCenterPoint + [0,200]);
+mark = new Path.Circle(destination, 50);
+mark.fillColor = 'pink';
+mark.strokeColor = 'black';
 
 /*** Websocket Stuff And Animation/drawing Swatches  ***/
 
@@ -39,13 +46,16 @@ socket.on('test', function(data){
   console.log("websocket test message: ", data);
 });
 
+/**Display and scroll tweets**/
+//LINE OF JQUERY TO INSERT UL ON ID 'tweet' GOES HERE
+
 //when new colorstamp received draw swatch to represent it
 socket.on('colorstamp', function(colorstamp){
   
   //Draw a swatch
   var swatchColor = colorstamp.modeColors[0];//for now ignore ties...
-  //cools.drawSwatchesForever(swatchColor, createSmallSwatch);
-  cools.drawNextSwatch(swatchColor, createSmallSwatch);
+  cools.drawSwatchesForever(swatchColor, createSmallSwatch);
+  //cools.drawNextSwatch(swatchColor, createSmallSwatch);
   view.update();//needed to re-render canvas correctly on draw
 
   /*** test/debug ***/
@@ -64,11 +74,6 @@ socket.on('colorstamp', function(colorstamp){
   }
 });//close socket.on('colorstamp'
 
-//HACK
-var destination = new Point(cools.position.x, cools.position.y + 100);
-
-mark = new Path.circle(destination, 50);
-mark.fillColor('pink');
 //Animate minute swatchspace once filled up
 function onFrame(){
 
@@ -125,14 +130,14 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace, ssCenterPoint){
     activeSwatch: null, //hold Paper obj of most recently created or 'active' swatch. cp_pointer points to centerpoint for this swatch. Prob should consolidate data structures
     
     //funcs
-    setSwatchSize: function(centerPoint){ //Also sets totalSwatches val
+    setSwatchSize: function(){ //Also sets totalSwatches val
                      this.swatchSize = new Size(this.width/this.xSpace, this.height/this.ySpace);
     },
 
     
     //Must be run after setSwatchSize. SwatchSpace uses 'top left' coordinate as start point for drawing swatches
     setTopLeftPoint: function(ssCenterPoint){
-                       this.firstPoint = new Point(view.center.x/(this.xSpace),view.center.y/(this.ySpace));
+                       this.firstPoint = new Point(ssCenterPoint.x/(this.xSpace),ssCenterPoint.y/(this.ySpace));
                        this.ssCenterPoint = ssCenterPoint;
                      },
 
