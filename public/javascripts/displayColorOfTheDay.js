@@ -18,24 +18,31 @@
 
 //Properties of the coordinate space we are displaying our swatches in
 /*Set Canvas width and height - eventually these should be derived from CSS container of canvas*/
-view.viewSize = [500,200];
-
-/**
-centerCirc = new Path.Circle(view.center, 70);
-centerCirc.strokeColor = 'orange';
-centerCirc.fillColor = 'blue'
-**/
-var cools = SwatchSpace(500, 200, 5,3,view.center);
-var cpArr = cools.centerPoints;
-var activeSwatch = cools.activeSwatch;//easier typing
+view.viewSize = [600,600];
 
 
-//HACK FOR ANIMATING MINUTE SWATCHSPACE
-var destination = new Point(cools.ssCenterPoint + [0,200]);
-mark = new Path.Circle(destination, 50);
+//Necessary to clone before maths op b/c otherwise view.center appears to be modified by Paper.js maths op
+var minSwatch = SwatchSpace(500, 200, 5,3,view.center.clone() -{x:0,y:150} );
+var cpArr = minSwatch.centerPoints;
+var activeSwatch = minSwatch.activeSwatch;//easier typing
+
+//hack - draw circle @ center of screen for reference
+centerCirc = new Path.Circle(view.center, 20);
+centerCirc.strokeColor = 'black';
+centerCirc.fillColor = 'pink'
+
+
+//hack - draw box around paper.js space (which should be canvas size)
+boundRect = new Path.Rectangle([0,0], view.viewSize);
+boundRect.strokeColor = 'black';
+
+
+
+//hack - show where swatch space should go
+var destination = new Point(minSwatch.ssCenterPoint + [0,330]);//NOTE 10/24/14: Is this modifying ssCenterPoint ????
+mark = new Path.Circle(destination, 10);
 mark.fillColor = 'pink';
 mark.strokeColor = 'black';
-
 /*** Websocket Stuff And Animation/drawing Swatches  ***/
 
 //CHANGE TO YOUR SETTINGS. Currently set for Heroku deployment
@@ -54,43 +61,42 @@ socket.on('colorstamp', function(colorstamp){
   
   //Draw a swatch
   var swatchColor = colorstamp.modeColors[0];//for now ignore ties...
-  cools.drawSwatchesForever(swatchColor, createSmallSwatch);
-  //cools.drawNextSwatch(swatchColor, createSmallSwatch);
+  //minSwatch.drawSwatchesForever(swatchColor, createSmallSwatch);
+  minSwatch.drawNextSwatch(swatchColor, createSmallSwatch);
   view.update();//needed to re-render canvas correctly on draw
 
   /*** test/debug ***/
   //iterate thru colorswatch obj. a lot of console messages. Note client receives LOTS more data than we currently use...
   console.log('Received colorstamp! start: '+colorstamp.start+ ' end: '+colorstamp.end);
   colorstamp.modeColors.forEach(function(color){console.log("Top color is: ",color)});
-  console.log('Count of top color is: ',colorstamp.modeCount);
+  console.log('minSwatch.Swatchfull is: ' + minSwatch.swatchFull);
 
   var allColors = colorstamp.allColors;
   var colorKeys = Object.keys(allColors);
 
+  /*
+  console.log('Count of top color is: ',colorstamp.modeCount);
   console.log('Additional colors.....');
   for(var i = 0; i< colorKeys.length; i++){
     var color = colorKeys[i];
     console.log(color +' -- ' +allColors[color]);
   }
+  */
 });//close socket.on('colorstamp'
 
-//Animate minute swatchspace once filled up
-function onFrame(){
 
-  if(cools.swatchFull){
-
-
-
-  }
-  //if minute swatchspace full animate & combine w/hour swatchspace
-    //HACK
-    if(!minSwatchVectorSet){
-      var newPos = new Point(cools.group.position.x, cools.group.position.y+100);
-      vector = newPos - cools.group.position;
+/**Paper.js Animation -- Mainly for animating SwatchSpaces**
+************************************************************/
+function onFrame(event){
+  
+  if(minSwatch){
+    if(minSwatch.swatchFull){
+      //minPos = minSwatch.group.position;
+      var vector = destination - minSwatch.group.position;
+      minSwatch.group.position += vector / 40;
+      //console.log("ONFRAME: Swatch Full");
     }
-    cools.group.position = vector / 40;
-    cools.setTopLeftPoint();
-    cools.generateCenterPoints();
+  }
 }
 
 /*************************************************************************************************************************
@@ -137,8 +143,10 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace, ssCenterPoint){
     
     //Must be run after setSwatchSize. SwatchSpace uses 'top left' coordinate as start point for drawing swatches
     setTopLeftPoint: function(ssCenterPoint){
-                       this.firstPoint = new Point(ssCenterPoint.x/(this.xSpace),ssCenterPoint.y/(this.ySpace));
-                       this.ssCenterPoint = ssCenterPoint;
+                      this.ssCenterPoint = ssCenterPoint;
+                      this.firstPoint = new Point(
+                                              ssCenterPoint - (new Point(this.width, this.height)/2) + (this.swatchSize/2)//Paper.js does the math operations for Points
+                                            );
                      },
 
     setTotalSwatches: function(){
@@ -203,7 +211,7 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace, ssCenterPoint){
     //Returns true on successful draw and false on max reached
     drawNextSwatch:  function(color, renderFunc){
       if(this.cp_pointer < this.centerPoints.length){
-        //Key step. Render swatch and add to Group
+        //Render swatch and add to Group
         var renderedSwatch = this.drawSwatch(this.centerPoints[this.cp_pointer],this.swatchSize,color,renderFunc);
         this.group.addChild(renderedSwatch);
         this.cp_pointer +=1;
@@ -212,6 +220,7 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace, ssCenterPoint){
       }
       else{
         this.swatchFull = true;
+        console.log('Swatch is Full according to drawNextSwatch');
         return false;
       }
     },
@@ -292,6 +301,8 @@ function createSmallSwatch(centerPoint, theSize, color){
 
     //Create outer shape
     var shape = new Rectangle([0, 0], theSize);
+    shape.strokeColor = 'black';
+    shape.strokeWidth = 2;
     var cornerSize = new Size(10,10);
     var path = new Path.Rectangle(shape, cornerSize);
 
