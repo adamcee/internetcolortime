@@ -20,9 +20,13 @@
 /*Set Canvas width and height - eventually these should be derived from CSS container of canvas*/
 view.viewSize = [600,600];
 
+//Constructor func. Simple. 
+var newMinSwatch = function(){
+  //Necessary to clone before maths op b/c otherwise view.center appears to be modified by Paper.js maths op
+  return new SwatchSpace(500, 200, 5,3,view.center.clone() -{x:0,y:150} );
+}
+var minSwatch = newMinSwatch();
 
-//Necessary to clone before maths op b/c otherwise view.center appears to be modified by Paper.js maths op
-var minSwatch = SwatchSpace(500, 200, 5,3,view.center.clone() -{x:0,y:150} );
 var cpArr = minSwatch.centerPoints;
 var activeSwatch = minSwatch.activeSwatch;//easier typing
 
@@ -91,10 +95,8 @@ function onFrame(event){
   
   if(minSwatch){
     if(minSwatch.swatchFull){
-      //minPos = minSwatch.group.position;
       var vector = destination - minSwatch.group.position;
       minSwatch.group.position += vector / 40;
-      //console.log("ONFRAME: Swatch Full");
     }
   }
 }
