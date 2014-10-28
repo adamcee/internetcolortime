@@ -11,16 +11,11 @@
  * This class also currently handles Canvas rendering and 
  * websockets for internetcolortime. All the action happens here
  ************************************************************************************************/
-
-
-
 /********************************Main Application*************************/
-
 /**Creating variables and such**
  * ****************************/
-
 /*Set Canvas width and height - eventually these should be derived from CSS container of canvas*/
-view.viewSize = [600,600];
+view.viewSize = [1000,600];
 
 /*Instantiate minSpace SwatchSpace for minute's worth of watches. Associated vars.*/
 var newMinSwatch = function(){
@@ -28,9 +23,22 @@ var newMinSwatch = function(){
   return new SwatchSpace(500, 200, 5,3,view.center.clone() -{x:0,y:150} );
 }
 
-var minSpace = newMinSwatch();
-var cpArr = minSpace.centerPoints;
-var activeSwatch = minSpace.activeSwatch;//easier typing
+minSpace = new SwatchSpace(500, 200, 5,3,view.center.clone() -{x:0,y:150} );
+//var minSpace = newMinSwatch();
+
+//destination of minSpace
+var destination = new Point(minSpace.ssCenterPoint + [0,330]);//NOTE 10/24/14: Is this modifying ssCenterPoint ????
+mark = new Path.Circle(destination, 10);
+mark.fillColor = 'pink';
+mark.strokeColor = 'black';
+
+hourSpace = new SwatchSpace(900, 200, 6, 4, destination); 
+console.log('HourSpace has ' + hourSpace.centerPoints.length + ' centerPoints');
+
+for(var i = 0;i < hourSpace.centerPoints.length; i++){
+  var cMark = new Path.Circle(hourSpace.centerPoints[i], 5);
+  cMark.fillColor = 'black';
+}
 
 /*Hold Paper.js groups ('swatches') which are 'in transit' - being animated*/
 var swatchesInTransit = [];
@@ -45,11 +53,6 @@ centerCirc.fillColor = 'pink'
 boundRect = new Path.Rectangle([0,0], view.viewSize);
 boundRect.strokeColor = 'black';
 
-//destination of minSpace
-var destination = new Point(minSpace.ssCenterPoint + [0,330]);//NOTE 10/24/14: Is this modifying ssCenterPoint ????
-mark = new Path.Circle(destination, 10);
-mark.fillColor = 'pink';
-mark.strokeColor = 'black';
 
 
 /**Paper.js Animation -- Mainly for animating SwatchSpaces**
@@ -60,11 +63,13 @@ function onFrame(event){
     //Iterate thru an array of all 'minutes' currently in transit and animate.
     for(var i = 0; i < swatchesInTransit.length; i++){
       curSwatch = swatchesInTransit[i];
-      var vector = destination - curSwatch.position;
+      swatchDestination = hourSpace.getActiveCenterPoint();
+      var vector = swatchDestination - curSwatch.position;
       curSwatch.position += vector / 40;
 
-      if(curSwatch.position == destination){
+      if(curSwatch.position == swatchDestination){
         //add curSwatch to hourSpace SwatchSpace and pop from swatchesInTransit[]
+        hourSpace.addSwatch(curSwatch);
       }
     }
     /*
@@ -219,18 +224,23 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace, ssCenterPoint){
             this.generateCenterPoints();
           },
 
+    incrementAllPointers: function(){
+        this.cp_pointer += 1 % this.maxSwatches;
+        this.activeSwatch_pointer += 1 % this.maxSwatches;
+        console.log('Running increment all swatch pointers');
+       console.log('Ran incrementASwatchPointer. ActiveSwatch_pointer is: ' + this.activeSwatch_pointer + ' and cp_pointer is: ' + this.cp_pointer);
+    },
+
     //Adds a swatch to the SwatchSpace. Updates pointers. Returns the swatch unchanged.
     addSwatch: function(swatch /*Paper.js Group or Item*/){
        this.swatches[this.activeSwatch_pointer] = swatch;
-       this.moveAcSwatchPointer();
-       this.cp_pointer +=1;//awkward. Maybe subsume in moveAcSwatchPointer()? Something...
+       this.incrementAllPointers();
        this.group.addChild(swatch);//Add swatch to Paper.js group
        return swatch; 
      },
 
-    //Move activeSwatch_pointer to next position. Essentially using swatches[] like a ring buffer
-    moveAcSwatchPointer: function(){
-       this.activeSwatch_pointer += 1 % (this.maxSwatches);//Array 'wraps' back around, ring-buffer-like.
+    getActiveCenterPoint: function(){
+       return this.centerPoints[this.cp_pointer];
     },
 
     isSpaceFull: function(){
@@ -241,6 +251,7 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace, ssCenterPoint){
     //NOTE: renderFunc arg must return a Paper.js Object (should be a Swatch). renderFunc does the actual rendering on screen.
     drawSwatch:  function(centerPoint, size, color, renderFunc){
       console.log('in drawSwatch() -- centerPoint: ' + centerPoint); 
+      console.log('Active centerpoint: ' + this.getActiveCenterPoint());
        return this.addSwatch(renderFunc(centerPoint, size, color)); 
     },
 
@@ -255,26 +266,8 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace, ssCenterPoint){
       else{
         console.log('Swatch is Full according to drawNextSwatch');
       }
-    },
-
-    //Like drawNextSwatch but 'loops' - draws over from initial pos once swatchspace is full
-    //Return statement is an anachronism BUT allows this to be interchanged w/drawNextSwatch easily
-    //....a hacked-up function....
-    drawSwatchesForever:  function(color, renderFunc){
-      if(this.cp_pointer < this.centerPoints.length){
-        this.activeSwatch = this.drawSwatch(this.centerPoints[this.cp_pointer],this.swatchSize,color,renderFunc);
-        console.log('***ACTIVESWATCH GROUPID: '+this.activeSwatch.id+' FILLCOLOR: '+this.activeSwatch.fillColor);
-        this.cp_pointer +=1;
-        console.log('drawing gridPos ',this.cp_pointer);
-        return true;
-      }
-      //reset and draw from the top
-      //NOTE: Write function for looping/ring buffer array type action to handle pointers? cp_pointer and activeSwatch pointer both have similar mechanisms...
-      else{
-        this.cp_pointer = 0;
-        return true;
-      }
     }
+
   }//close SwatchSpace obj 
 
   //Do the pseudo-classical constructor-type stuff....
