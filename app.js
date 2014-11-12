@@ -111,9 +111,6 @@ var io = require('socket.io').listen(server);
 
 console.log('socket.io created');
 
-//moment.js handles time
-var moment = require('moment');
-console.log('moment created');
 
 //This is our 'unit of time' - streaming to client every timeInterval seconds
 var timeInterval = 4;
@@ -160,17 +157,12 @@ var colorBuffer = [];
 //pull and handle the Twitter stream
 twit.stream('statuses/filter', {track: colors}, function(stream){
   stream.on('data', function(tweet){    
-      //console.log(tweet.text);
       showTweet(tweet);
-      //console.log('TWEET');
 
       //Aggregate tweets over our time interval (should be 4 seconds)
       if(!intervalPassed(startTime, timeInterval)){
         //return arr of all 'color words' in tweet and add to array
         colorBuffer = colorBuffer.concat(tHandler.parse(tweet, colors));
-        //debug
-        //console.log('not yet, diff is ', (getTimeStamp()-startTime));
-        //colorBuffer.forEach(function(color){console.log('we have a ',color)});
       }
 
       //Our time interval is completed, reset for next time interval

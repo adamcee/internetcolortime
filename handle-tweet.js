@@ -36,11 +36,8 @@ var parse = function(tweet, desiredWords){
   var parsedWords = [];//hold all words we parse from tweet
 
   for(var i = 0; i < dw; i++){
-    //console.log('Testing Color: ',desiredWords[i]);
     for(var j = 0; j < wl; j++){
-      //console.log('...tweet word: ',tweetWords[j]);
       if(desiredWords[i] === tweetWords[j]){
-      // console.log("A color! We have the match: " + desiredWords[i] + " " + tweetWords[j]);
       parsedWords.push(desiredWords[i]);
       }
     }
@@ -48,6 +45,9 @@ var parse = function(tweet, desiredWords){
   return parsedWords;
 }
 
+/*
+ * Think this was earlier version of parse(). Doublecheck and delete
+ */
 var getDesiredWords = function(tweet,desiredWords){
 
   //Concat the two parts of the tweet we're interested in and make arr of words
@@ -80,47 +80,6 @@ var getDesiredWords = function(tweet,desiredWords){
   return colorsAndTime;
 }
 
-/*THIS IS OLD VERSION OF getDesiredWords*/
-/**
-var handleTweet = function(tweet,desiredWords){
-
-  //Concat the two parts of the tweet we're interested in and make arr of words
-  var tweetWords = tweet.text;
-  var dw = desiredWords.length;
-  var wl = tweetWords.length;
-  var colorsAndTime = [];//store color/time matches
-  debugger;
-
-  //NOTE: TIMESTAMP DOES NOT PRESERVE TIMEZONE! CHANGE TO DATETIME?
-  var colors = [];
-  var colorsAndTime = {colors: colors, timestamp: parseTwitterDate(tweet)};
-  //Loop thru and analyze words
-  for(var i = 0; i < dw; i++){
-    
-    debugger;
-    for(var j = 0; j < wl; j++){
-      debugger; 
-      if(desiredWords[i] === tweetWords[j]){
-
-        debugger;
-        //We have a match! Add a 'colorstamp to array to return.... 
-        colors.push(desiredWords[i]);
-
-        console.log("A color! We have the match: " + desiredWords[i] + " " + tweetWords[j]);
-        console.log("Tweeted at: ", colorsAndTime.timestamp);
-
-      }
-    }
-  }
-
-  console.log("colorsAndTime -- timestamp -- "+colorsAndTime.timestamp);
-  for(var i = 0; i < colorsAndTime.colors.length; i++){
-    console.log(colorsAndTime.colors[i]);
-  }
-  return colorsAndTime;
-}
-**/
-
 /* Function
  * Traverses an array. Returns obj with: 
  *                                      size of the mode
@@ -129,7 +88,6 @@ var handleTweet = function(tweet,desiredWords){
  * Derived from and thanks to: http://stackoverflow.com/questions/1053843/get-the-element-with-the-highest-occurrence-in-an-array
  * Args:
  *  array -- array of strings and/or numbers. Should be 'color words' 
- *
  */
 var mode = function(array){
   if(array.length == 0)

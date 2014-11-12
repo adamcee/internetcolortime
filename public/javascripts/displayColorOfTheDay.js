@@ -41,7 +41,7 @@ for(var i = 0;i < hourSpace.centerPoints.length; i++){
 }
 
 /*Hold Paper.js groups ('swatches') which are 'in transit' - being animated*/
-var swatchesInTransit = [];
+var itemsInTransit = [];
 
 /*Hacks to draw visual reference points for animation. Remove for production*/
 //center of canvas
@@ -57,19 +57,24 @@ boundRect.strokeColor = 'black';
 
 /**Paper.js Animation -- Mainly for animating SwatchSpaces**
 ************************************************************/
+var animationSteps = 40;
+
 function onFrame(event){
  
   if(minSpace){
     //Iterate thru an array of all 'minutes' currently in transit and animate.
-    for(var i = 0; i < swatchesInTransit.length; i++){
-      curSwatch = swatchesInTransit[i];
-      swatchDestination = hourSpace.getActiveCenterPoint();
-      var vector = swatchDestination - curSwatch.position;
-      curSwatch.position += vector / 40;
+    for(var i = 0; i < itemsInTransit.length; i++){
+      curItem = itemsInTransit[i];
 
-      if(curSwatch.position == swatchDestination){
-        //add curSwatch to hourSpace SwatchSpace and pop from swatchesInTransit[]
-        hourSpace.addSwatch(curSwatch);
+      
+      //Move swatch to new location
+      var swatchDestination = hourSpace.getActiveCenterPoint();
+      var vector = swatchDestination - curItem.position;
+      curItem.position += vector / animationSteps;
+
+      if(curItem.position == swatchDestination){
+        //add curItem to hourSpace SwatchSpace and pop from itemsInTransit[]
+        hourSpace.addSwatch(curItem);
       }
     }
     /*
@@ -107,7 +112,10 @@ socket.on('colorstamp', function(colorstamp){
     minSpace.drawNextSwatch(swatchColor, createSmallSwatch);
   }
   else{
-    swatchesInTransit.push(minSpace.group.clone());
+    var tmpItem = minSpace.group.rasterize();
+    tmpItem.fitBounds(hourSpace.swatchSize);
+    
+    itemsInTransit.push(tmpItem);//clone swatchspace and convert to image
     minSpace.deleteSwatches();
     view.update();
   }
