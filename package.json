@@ -19,6 +19,7 @@
     "jquery": "~2.1.x",
     "moment": "~2.7.x",
     "node-cassandra-cql": "~0.4.x",
-    "socket.io": "~1.0.x"
+    "socket.io": "~1.0.x",
+    "cassanova": "~0.6.0"
   }
 }

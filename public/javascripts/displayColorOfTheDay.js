@@ -17,14 +17,9 @@
 /*Set Canvas width and height - eventually these should be derived from CSS container of canvas*/
 view.viewSize = [1000,600];
 
-/*Instantiate minSpace SwatchSpace for minute's worth of watches. Associated vars.*/
-var newMinSwatch = function(){
-  //Necessary to clone before maths op b/c otherwise view.center appears to be modified by Paper.js maths op
-  return new SwatchSpace(500, 200, 5,3,view.center.clone() -{x:0,y:150} );
-}
-
 minSpace = new SwatchSpace(500, 200, 5,3,view.center.clone() -{x:0,y:150} );
-//var minSpace = newMinSwatch();
+
+var minMoving = null; //Placeholder for minSwatch animating to hourSwatch position...
 
 //destination of minSpace
 var destination = new Point(minSpace.ssCenterPoint + [0,330]);//NOTE 10/24/14: Is this modifying ssCenterPoint ????
@@ -32,7 +27,7 @@ mark = new Path.Circle(destination, 10);
 mark.fillColor = 'pink';
 mark.strokeColor = 'black';
 
-hourSpace = new SwatchSpace(900, 200, 6, 4, destination); 
+hourSpace = new SwatchSpace(900, 200, 10, 6, destination); 
 console.log('HourSpace has ' + hourSpace.centerPoints.length + ' centerPoints');
 
 for(var i = 0;i < hourSpace.centerPoints.length; i++){
@@ -61,22 +56,27 @@ var animationSteps = 40;
 
 function onFrame(event){
  
-  if(minSpace){
+  if(minSpace && minMoving){
     //Iterate thru an array of all 'minutes' currently in transit and animate.
-    for(var i = 0; i < itemsInTransit.length; i++){
-      curItem = itemsInTransit[i];
+    //for(var i = 0; i < itemsInTransit.length; i++){
+     // curItem = itemsInTransit[i];
 
       
       //Move swatch to new location
-      var swatchDestination = hourSpace.getActiveCenterPoint();
-      var vector = swatchDestination - curItem.position;
-      curItem.position += vector / animationSteps;
+      //var swatchDestination = hourSpace.getActiveCenterPoint();
+      //var vector = swatchDestination - minMoving.position;
+      //minMoving.position += vector / animationSteps;
+      var vector = minMoving.dest - minMoving.item.position;
+      minMoving.item.position += vector / animationSteps;
 
-      if(curItem.position == swatchDestination){
+      /*DEBUG: This not working b/c we never seem to get to exact point, I think. Maybe b/c of animationSteps? 
+       * In any case while there's an error prog is functioning correct so putting issue on back burner*/
+      if(vector.length == 0 ){
+        console.log("IN THE HOURSPACE!!!!!!");
+        minMoving = null; //reset minMoving to null
         //add curItem to hourSpace SwatchSpace and pop from itemsInTransit[]
-        hourSpace.addSwatch(curItem);
       }
-    }
+    //}
     /*
     if(minSpace.isSpaceFull()){ //We will drop this
     }
@@ -108,15 +108,20 @@ socket.on('colorstamp', function(colorstamp){
 
   //When minSpace full add group to arr for animation and reset minSpace.
   if(!minSpace.isSpaceFull()){
-    console.log('Drawing a '+swatchColor + ' swatch...');
+
+    //console.log('Drawing a '+swatchColor + ' swatch...');
     minSpace.drawNextSwatch(swatchColor, createSmallSwatch);
+
+    
   }
   else{
-    var tmpItem = minSpace.group.rasterize();
-    tmpItem.fitBounds(hourSpace.swatchSize);
-    
-    itemsInTransit.push(tmpItem);//clone swatchspace and convert to image
+    hourSpace.printStatus('**HourSpace Status**');//debug
+    minMoving = {item: minSpace.group.rasterize(), dest: hourSpace.getActiveCenterPoint()};
     minSpace.deleteSwatches();
+    minMoving.item.fitBounds(hourSpace.swatchSize);
+    hourSpace.addSwatch(minMoving);//TEMPORARY FOR debug
+    
+    //itemsInTransit.push(tmpItem);//clone swatchspace and convert to image
     view.update();
   }
 
@@ -124,21 +129,13 @@ socket.on('colorstamp', function(colorstamp){
 
   /*** test/debug ***/
   //iterate thru colorswatch obj. a lot of console messages. Note client receives LOTS more data than we currently use...
-  console.log('Received colorstamp! start: '+colorstamp.start+ ' end: '+colorstamp.end);
+  //console.log('Received colorstamp! start: '+colorstamp.start+ ' end: '+colorstamp.end);
   colorstamp.modeColors.forEach(function(color){console.log("Top color is: ",color)});
-  console.log('minSpace.Swatchfull is: ' + minSpace.isSpaceFull());
+  //console.log('minSpace.Swatchfull is: ' + minSpace.isSpaceFull());
 
   var allColors = colorstamp.allColors;
   var colorKeys = Object.keys(allColors);
 
-  /*Degbug
-  console.log('Count of top color is: ',colorstamp.modeCount);
-  console.log('Additional colors.....');
-  for(var i = 0; i< colorKeys.length; i++){
-    var color = colorKeys[i];
-    console.log(color +' -- ' +allColors[color]);
-  }
-  */
 });//close socket.on('colorstamp'
 
 
@@ -235,8 +232,8 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace, ssCenterPoint){
     incrementAllPointers: function(){
         this.cp_pointer += 1 % this.maxSwatches;
         this.activeSwatch_pointer += 1 % this.maxSwatches;
-        console.log('Running increment all swatch pointers');
-       console.log('Ran incrementASwatchPointer. ActiveSwatch_pointer is: ' + this.activeSwatch_pointer + ' and cp_pointer is: ' + this.cp_pointer);
+        //console.log('Running increment all swatch pointers');
+        //console.log('Ran incrementASwatchPointer. ActiveSwatch_pointer is: ' + this.activeSwatch_pointer + ' and cp_pointer is: ' + this.cp_pointer);
     },
 
     //Adds a swatch to the SwatchSpace. Updates pointers. Returns the swatch unchanged.
@@ -258,8 +255,8 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace, ssCenterPoint){
     //Applies a swatch-rendering function of choice to draw Swatch at a given point
     //NOTE: renderFunc arg must return a Paper.js Object (should be a Swatch). renderFunc does the actual rendering on screen.
     drawSwatch:  function(centerPoint, size, color, renderFunc){
-      console.log('in drawSwatch() -- centerPoint: ' + centerPoint); 
-      console.log('Active centerpoint: ' + this.getActiveCenterPoint());
+      //console.log('in drawSwatch() -- centerPoint: ' + centerPoint); 
+      //console.log('Active centerpoint: ' + this.getActiveCenterPoint());
        return this.addSwatch(renderFunc(centerPoint, size, color)); 
     },
 
@@ -269,12 +266,19 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace, ssCenterPoint){
       if(!this.isSpaceFull()){ 
         //Render swatch and add to Group
         var renderedSwatch = this.drawSwatch(this.centerPoints[this.cp_pointer],this.swatchSize,color,renderFunc);
-        console.log('drawing gridPos ',this.cp_pointer);
+        //console.log('drawing gridPos ',this.cp_pointer);
       }
       else{
         console.log('Swatch is Full according to drawNextSwatch');
       }
-    }
+    },
+
+    //debug func
+    printStatus: function(msg){
+      console.log(msg);
+      console.log('SwatchSize: ' + this.swatchSize + ', swatches arr length: ' + this.swatches.length + ', pointer at: ' + this.activeSwatch_pointer);
+      console.log('Centerpoints arr pointer: ' + this.cp_pointer + ', active centerpoint is: ' + this.getActiveCenterPoint());
+   }
 
   }//close SwatchSpace obj 
 
@@ -294,7 +298,7 @@ function SwatchSpace(pixelWidth, pixelHeight, xSpace, ySpace, ssCenterPoint){
  */
 function createSwatch(centerPoint, theSize, color){
 
-    console.log('running createswatch2');
+    //console.log('running createswatch2');
     var borderColor = 'white';//color of the swatch border
 
     //Create outer shape
@@ -354,7 +358,7 @@ function createSmallSwatch(centerPoint, theSize, color){
     mySwatch.position = centerPoint;
     mySwatch.fillColor = color;
 
-    console.log ('...' + color + ' swatch rendered');
+    //console.log ('...' + color + ' swatch rendered');
     //Return the Group so it can be used
     return mySwatch;
 }
