@@ -1,15 +1,13 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('static-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var fs = require('fs');
-
-var routes = require('./routes/index');
-var users = require('./routes/users');
-
-var app = express();
+var express = require('express'),
+    path = require('path'),
+    favicon = require('static-favicon'),
+    logger = require('morgan'),
+    cookieParser = require('cookie-parser'),
+    bodyParser = require('body-parser'),
+    fs = require('fs'),
+    routes = require('./routes/index'),
+    users = require('./routes/users'),
+    app = express();
 
 
 // view engine setup
@@ -26,14 +24,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', routes);
 app.use('/users', users);
 
-/// catch 404 and forward to error handler
+// catch 404 and forward to error handler
 app.use(function(req, res, next) {
     var err = new Error('Not Found');
     err.status = 404;
     next(err);
 });
 
-/// error handlers
+// error handlers
 
 // development error handler
 // will print stacktrace
@@ -61,14 +59,21 @@ app.use(function(err, req, res, next) {
  * Non-generic part of app.js specific to my application
  * *****************************************************/
 
-//for handling twitter public stream and tracking color words
-var twitter = require('ntwitter');
-var tHandler = require('./handle-tweet.js')();
-/* Using Heroku - Twitter credentials set as env vars. You may wish to create and require 
- * your own credentials.js file. You must create your own twitter api key and use its credentials.
-var credentials = require('./credentials.js');//twitter stream auth */
+// for handling twitter public stream and tracking color words
+var twitter = require('ntwitter'),
+    tHandler = require('./handle-tweet.js')();
 
-//ntwitter obj with authentication. Pulled from env vars. If using credentials.js, do like so: consumer_key: credentials.consumer_key
+/**
+ * If using Heroku twitter credentials are set as env vars.
+ * You may wish to create and require your own credentials.js file.
+ * You must create your own twitter api key and use its credentials.
+ */
+
+// twitter stream credentials
+var credentials = require('./credentials.js');
+
+// ntwitter obj with authentication.
+// If using credentials.js, do like so: consumer_key: credentials.consumer_key
 var twit = new twitter({
   consumer_key: process.env.consumer_key,
   consumer_secret: process.env.consumer_secret,
@@ -76,12 +81,12 @@ var twit = new twitter({
   access_token_secret: process.env.access_token_secret
 });
 
+/***************************************************
 //Attempting an approach to socket.io on heroku from:
 //https://github.com/mongolab/tractorpush-server/blob/master/app.js
 //My original code (works fine w/foreman locally, and non-heroku, commented out for now. 9-20-14
 
 //Including port 5000 because it is the Heroku default
-/**
 var app = require('http').createServer(handler),
     io = require('socket.io').listen(app);
 
@@ -100,31 +105,33 @@ function handler(req, res){
             res.end(data);
         });
 }
-**/
-/**/
-var port = process.env.PORT || 2000;
-var server = app.listen(port, function(){
-  console.log("Express listening on port %d in %s mode. Port is: " + port) //%d %s not always getting replaced...minor issue
-});
-var io = require('socket.io').listen(server);
-/**/
+************************/
+
+var port = process.env.PORT || 2000,
+    server = app.listen(port, function(){
+        //TODO: %d %s not always getting replaced
+        console.log("Express listening on port %d in %s mode. Port is: " + port);
+    }),
+    io;
+
+io = require('socket.io').listen(server);
 
 console.log('socket.io created');
 
 
-//This is our 'unit of time' - streaming to client every timeInterval seconds
+// This is our 'unit of time' - streaming to client every timeInterval seconds
 var timeInterval = 4;
 
-//Array with all colors we want
-var colors = require('./color-list.js');
+var colors = require('./color-list.json');
 console.log('colors created');
 
-/* Connect to Twitter Public Stream and track color keywords. 
+/**
+ * Connect to Twitter Public Stream and track color keywords.
  * Handle keywords by emitting to client via websocket, and saving to DB.
  *
  * Not 100% sure if this architecture (handling tweetstream in app.js) is ideal...
  *
- * --Order of Operations--
+ * --Steps--
  * run twitter stream tracking colors
  * on stream data, pass to handler function
  * handler function returns json objs w/color&timestamp
@@ -132,27 +139,26 @@ console.log('colors created');
  * save colordata to database w/database module
  */
 
-//NOTE: CopyPasta time! I'd like this all to be separated in modules but just want to get the darn thing running...
+//TODO: Break into separate modules
 
-/**/
 io.on('connection', function(socket){
-  io.emit('test', "hello!");
-  
-  io.on('disconnect', function(){
-    console.log('socket.io disconnected');
-  });
+    io.emit('test', "hello!");
+    io.on('disconnect', function(){
+        console.log('socket.io disconnected');
+    });
 });
-/**/
 
 function showTweet(tweet){
-  setTimeout(function(){
-    console.log(tweet.text);
-  },3000);
+    setTimeout(function(){
+        console.log(tweet.text);
+    },3000);
 }
-//Check out colorhexa.com....use instead of 'colors' file to pull a full color list? Then will have to parse for 'summer blue', etc
+//TODO: Check out colorhexa.com....
+//use instead of 'colors' file to pull a full color list?
+//Then will have to parse for 'summer blue', etc
 
-startTime = getTimeStamp(); 
-var colorBuffer = [];
+var startTime = getTimeStamp(),
+    colorBuffer = [];
 
 //pull and handle the Twitter stream
 twit.stream('statuses/filter', {track: colors}, function(stream){
@@ -212,68 +218,61 @@ io.on('connection', function(socket){
 }); 
 **/
 
-/**** colorStamp and related Functions ****/
+
+/**** Functions ****/
 
 function makeColorStamp(colorModeObj, start, end){
-  var colorStamp = {modeColors: colorModeObj.modeColors, 
-                    modeCount: colorModeObj.modeCount,
-                    allColors: colorModeObj.allColors,
-                    start: start, 
-                    end: end
-  };
-  return colorStamp;
+    var colorStamp = {
+        modeColors: colorModeObj.modeColors,
+        modeCount: colorModeObj.modeCount,
+        allColors: colorModeObj.allColors,
+        start: start,
+        end: end
+    };
+    return colorStamp;
 }
 
-/**** Time-handling Functions ****/
-
 function getTimeStamp(){
-  return Math.round(Date.now()/1000);
+    return Math.round(Date.now()/1000);
 }
 
 function intervalPassed(startTime, timeInterval){
-  if( (getTimeStamp() - startTime) < timeInterval){
-    return false;
-  } else{
-    return true;
-  }
+    return (getTimeStamp() - startTime < timeInterval) ? false : true;
 }
-
-
-/**** Test Functions ****/    
 
 function testColorTimeArr(colorTimeArr){
     var ctLen = colorTimeArr.length;
-    
+
     console.log("TEST: ctLen is ",ctLen);
+
     if(ctLen > 0){
-      for(var i = 0; i< ctLen; i++){
-        var ct = colorTimeArr[i];
-        console.log("TEST: Color - " + ct.color + ' Time - ' + ct.timestamp); 
-        //Stream colors data to client
-      } 
-      //Save colors data to db
+        for(var i = 0; i< ctLen; i++){
+            var ct = colorTimeArr[i];
+            console.log("TEST: Color - " + ct.color + ' Time - ' + ct.timestamp);
+            //Stream colors data to client
+        }
+        //Save colors data to db
     }
 }
 
 var testConn =  function(){
-  twit.verifyCredentials(function(err,data){
-    if(err){
-      console.log("Error! "+err);
-    }
-    else{
-      console.log(data);
-    }
-  });
-}
+    twit.verifyCredentials(function(err, data){
+        if(err){
+            console.log("Error! "+err);
+        }
+        else{
+            console.log(data);
+        }
+    });
+};
 
 function testStream(){
-  twit.stream('statuses/sample', function(stream){
-    stream.on('data',function(data){
-      console.log(data);
+    twit.stream('statuses/sample', function(stream){
+        stream.on('data',function(data){
+            console.log(data);
+        });
     });
-  });
 }
-
 
 //Exports for app.js
 module.exports = app;

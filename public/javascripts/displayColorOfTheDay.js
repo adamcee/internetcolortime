@@ -67,11 +67,13 @@ function onFrame(event){
       //var vector = swatchDestination - minMoving.position;
       //minMoving.position += vector / animationSteps;
       var vector = minMoving.dest - minMoving.item.position;
-      minMoving.item.position += vector / animationSteps;
+      minMoving.item.position += vector / animationSteps; /*This method causes the item to slow down too mcuh as it nears its destination*/
+      console.log('CurPos: ' + minMoving.item.position.round() + ' ---- Dest: ' + minMoving.dest.round());
 
       /*DEBUG: This not working b/c we never seem to get to exact point, I think. Maybe b/c of animationSteps? 
        * In any case while there's an error prog is functioning correct so putting issue on back burner*/
-      if(vector.length == 0 ){
+      //if(vector.length == 0 ){
+      if(minMoving.dest.round() - minMoving.item.position.round() == 0){ /*WhY DO WE NEVER GET HERE???*/
         console.log("IN THE HOURSPACE!!!!!!");
         minMoving = null; //reset minMoving to null
         //add curItem to hourSpace SwatchSpace and pop from itemsInTransit[]
