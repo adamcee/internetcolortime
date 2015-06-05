@@ -108,22 +108,21 @@ function handler(req, res){
 ************************/
 
 var port = process.env.PORT || 2000,
-    server = app.listen(port, function(){
-        //TODO: %d %s not always getting replaced
-        console.log("Express listening on port %d in %s mode. Port is: " + port);
-    }),
-    io;
+    server,
+    io,
+    // This is our 'unit of time' - streaming to client every timeInterval seconds
+    timeInterval = 4,
+    colors = require('./color-list.json');
+
+server = app.listen(port, function(){
+    //TODO: %d %s not always getting replaced
+    console.log("Express listening on port %d in %s mode. Port is: " + port);
+});
 
 io = require('socket.io').listen(server);
 
 console.log('socket.io created');
-
-
-// This is our 'unit of time' - streaming to client every timeInterval seconds
-var timeInterval = 4;
-
-var colors = require('./color-list.json');
-console.log('colors created');
+console.log('colors loaded');
 
 /**
  * Connect to Twitter Public Stream and track color keywords.
