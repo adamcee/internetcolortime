@@ -1,8 +1,0 @@
-identity added: /Users/dev/.ssh/id_rsa (/Users/dev/.ssh/id_rsa)
-
-Your application 'internetcolortime' is now available.
-
-  URL:        http://internetcolortime-netcolortime.rhcloud.com/
-    SSH to:     53e515b0500446b9da0002ee@internetcolortime-netcolortime.rhcloud.com
-      Git remote: ssh://53e515b0500446b9da0002ee@internetcolortime-netcolortime.rhcloud.com/~/git/internetcolortime.git/
-        Cloned to:  /Users/dev/internetcolortime
