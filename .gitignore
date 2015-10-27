@@ -33,6 +33,7 @@ node_modules
 
 # Twitter Public API keys  and secrets
 credentials.js
+config/local.json
 
 # Somewhere to keep temp stuff, whatever
 scratch
