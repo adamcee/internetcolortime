@@ -17,13 +17,13 @@
  * **********************************************************************/
 
 
-/* Function 
- * Args: 
+/* Function
+ * Args:
  *  tweet -- Twitter tweet JSON obj
- *  desiredWords --  array of words (strings) we're interested in, should be of colors     
+ *  desiredWords --  array of words (strings) we're interested in, should be of colors
  *
  * Returns:
- *  String array containing all instances of all 'desired words' in the tweet  
+ *  String array containing all instances of all 'desired words' in the tweet
  * NOTE: 'colors' and 'colorWords' equiv to desiredWords - assuming all desired words are color-words
  *****************************************/
 var parse = function(tweet, desiredWords){
@@ -64,7 +64,7 @@ var getDesiredWords = function(tweet,desiredWords){
     for(var j = 0; j < wl; j++){
       if(desiredWords[i] === tweetWords[j]){
 
-        //We have a match! Add a 'colorstamp to array to return.... 
+        //We have a match! Add a 'colorstamp to array to return....
         colors.push(desiredWords[i]);
 
         console.log("A color! We have the match: " + desiredWords[i] + " " + tweetWords[j]);
@@ -81,13 +81,13 @@ var getDesiredWords = function(tweet,desiredWords){
 }
 
 /* Function
- * Traverses an array. Returns obj with: 
+ * Traverses an array. Returns obj with:
  *                                      size of the mode
  *                                      array of most common value(s if tie) (mode) in array.
  *
  * Derived from and thanks to: http://stackoverflow.com/questions/1053843/get-the-element-with-the-highest-occurrence-in-an-array
  * Args:
- *  array -- array of strings and/or numbers. Should be 'color words' 
+ *  array -- array of strings and/or numbers. Should be 'color words'
  */
 var mode = function(array){
   if(array.length == 0)
@@ -96,7 +96,7 @@ var mode = function(array){
   var modeMap = {}, maxCount = 1, modes = [array[0]], len = array.length;
 
   for(var i = 0;i < len; i++){
-    
+
     var el = array[i];
 
     if(modeMap[el] == null)
@@ -132,7 +132,7 @@ function parseTwitterDate(tweet){
  */
 var create = function(){
   var tw = {};
-  
+
   tw.getDesiredWords = getDesiredWords;
   tw.mode = mode;
   tw.parse = parse;
