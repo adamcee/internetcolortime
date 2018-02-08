@@ -16,6 +16,9 @@
   "devDependencies": {
     "@types/react": "^16.0.36",
     "@types/react-dom": "^16.0.3",
+    "@webpack-blocks/babel": "^1.0.0-rc",
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
     "cross-env": "^5.1.3",
     "webpack": "^3.10.0",
     "webpack-blocks": "^1.0.0-rc.2",

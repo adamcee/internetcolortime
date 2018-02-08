@@ -9,12 +9,13 @@ console.log("Hello world!");
 
 class Foo extends React.Component {
     render() {
-        return (<div>Foo</div>);
-        //return (
-            //<View style={styles.foo}>
-                //{this.props.children}
-            //</View>
-        //);
+        // return (<div>Foo</div>);
+        return (
+            <View style={styles.foo}>
+                This is a Primitive component
+                {this.props.children}
+            </View>
+        );
     }
 }
 
