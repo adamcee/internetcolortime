@@ -1,5 +1,10 @@
-internetcolortime
+internetcolortime!!!
 =================
+
+###This is the coolest thing in the world
+ * because i wrote it
+ * because it has the word color in it 
+
 Aug 2014
 
 Visually represent the 'color' of the internet, and the passage of time.
